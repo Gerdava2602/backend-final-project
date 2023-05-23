@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 
 import userRouter from "./routes/user";
+import { handleError } from "./utils/errors";
 
 dotenv.config();
 
@@ -15,6 +16,8 @@ app.use(express.urlencoded({ extended: true }));
 mongoose.connect(process.env.MONGODB_URI ?? '');
 
 app.use("/user", userRouter);
+
+app.use(handleError);
 
 const db = mongoose.connection;
 

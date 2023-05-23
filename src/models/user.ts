@@ -17,6 +17,26 @@ const UserSchema = new Schema({
         type: String,
         required:true,
     },
+    name: {
+        type: String,
+        required: true,
+    },
+    lastname: {
+        type: String,
+        required:true,
+    },
+    phone: {
+        type: String,
+        required: true,
+    },
+    address: {
+        type: String,
+        required:true,
+    },
+    active: {
+        type: Boolean,
+        default: true,
+    }
 });
 
 export default mongoose.model("User", UserSchema);
