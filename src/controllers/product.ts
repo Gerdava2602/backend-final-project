@@ -160,7 +160,7 @@ export const updateProduct = async (
       { new: true }
     );
     if (!updateProduct) return next(createError("Product not found", 404));
-    res.status(200).json('Updated succesfully');
+    res.status(200).json('Product updated succesfully');
   } catch (error) {
     next(error);
   }
@@ -201,7 +201,7 @@ export const deleteProduct = async (
       { new: true }
     );
     if (!deleteProduct) return next(createError("Product not found", 404));
-    res.status(200).json('Deleted succesfully');
+    res.status(200).json('Product deleted succesfully');
   } catch (error) {
     next(error);
   }
