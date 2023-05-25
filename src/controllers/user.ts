@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { comparePassword, generateToken, hashPassword } from "../utils/jwt";
 import { createError } from "../utils/errors";
 import User from "../models/user";
-import { loginData, user } from "../types/user";
+import { loginData, updateUserType, user } from "../types/user";
 
 export const signup = async (
   req: Request,
@@ -46,7 +46,7 @@ export const login = async (
 
     const isPasswordValid = await comparePassword(password, user.password);
     if (!isPasswordValid) {
-      return next(createError("Invalid password", 401));
+      return next(createError("Invalid Credentials", 401));
     }
 
     const token = generateToken({
@@ -89,10 +89,21 @@ export const updateUser = async (
   next: NextFunction
 ) => {
   const { id } = req.params;
-  const { username, email, password, name, lastname, phone, address }: user =
+  const { username, email, password, name, lastname, phone, address }: updateUserType =
     req.body;
   try {
-    const user = await User.findOneAndUpdate(
+
+    const user = await User.findOne({ _id: id, active: true });
+    
+    if (!user) {
+      return next(createError("User not found", 404));
+    }
+
+    if(req.user?.email !== user.email) {
+      return next(createError("Unauthorized", 401));
+    }
+
+    await User.updateOne(
       { _id: id, active: true },
       {
         username: username,
@@ -102,12 +113,11 @@ export const updateUser = async (
         lastname: lastname,
         phone: phone,
         address: address,
-      }
+      },
+      { new: true }
     );
-    if (!user) {
-      return next(createError("User not found", 404));
-    }
-    res.status(200).json(user);
+
+    res.status(200).json('User updated successfully');
   } catch (error) {
     next(error);
   }
@@ -118,16 +128,22 @@ export const deleteUser = async (
   res: Response,
   next: NextFunction
 ) => {
+  
   const { id } = req.params;
   try {
     const user = await User.findOneAndUpdate(
       { _id: id, active: true },
       { active: false }
     );
+
     if (!user) {
       return next(createError("User not found", 404));
     }
-    res.status(200).json(user);
+    
+    if(req.user?.email !== user.email) {
+      return next(createError("Unauthorized", 401));
+    }
+    res.status(200).json('User deleted successfully');
   } catch (error) {
     next(error);
   }

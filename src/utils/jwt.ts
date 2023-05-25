@@ -16,14 +16,15 @@ export const generateToken = (payload: loginData) => {
     return jwt.sign(payload, process.env.JWT_SECRET ?? '', { expiresIn: '1h' })
 }
 
-export const verifyToken = (req: Request & {user: loginData}, res: Response, next: NextFunction) => {
+export const verifyToken = (req: Request, res: Response, next: NextFunction) => {
     try {
+        if(!req.cookies?.token) return res.status(401).json({ message: "Unauthorized, not cookie" });
         jwt.verify(req.cookies.token, process.env.JWT_SECRET ?? '', (err: unknown, decoded: unknown) => {
             if (err) {
                 return res.status(401).json({ message: "Unauthorized" });
             }
             req.user = decoded as loginData;
-        });
+        });        
         next();
     } catch (error) {
         next(error);

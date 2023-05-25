@@ -1,9 +1,12 @@
 import express, { Express, Request, Response } from "express";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
+import cookieParser from "cookie-parser";
 
 import userRouter from "./routes/user";
+import productRouter from "./routes/product";
 import { handleError } from "./utils/errors";
+
 
 dotenv.config();
 
@@ -12,10 +15,12 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser())
 
 mongoose.connect(process.env.MONGODB_URI ?? '');
 
 app.use("/user", userRouter);
+app.use("/product", productRouter);
 
 app.use(handleError);
 
