@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { comparePassword, generateToken, hashPassword } from "../utils/jwt";
 import { createError } from "../utils/errors";
-import User from "../models/user";
+import User from "../models/User";
 import { loginData, updateUserType, user } from "../types/user";
 
 export const signup = async (
@@ -38,7 +38,7 @@ export const login = async (
   try {
     const { email, password }: loginData = req.body;
 
-    const user = await User.findOne({ email: email });
+    const user = await User.findOne({ email: email, active: true });
 
     if (!user) {
       return next(createError("Usuario not found", 404));
@@ -89,17 +89,23 @@ export const updateUser = async (
   next: NextFunction
 ) => {
   const { id } = req.params;
-  const { username, email, password, name, lastname, phone, address }: updateUserType =
-    req.body;
+  const {
+    username,
+    email,
+    password,
+    name,
+    lastname,
+    phone,
+    address,
+  }: updateUserType = req.body;
   try {
-
     const user = await User.findOne({ _id: id, active: true });
-    
+
     if (!user) {
       return next(createError("User not found", 404));
     }
 
-    if(req.user?.email !== user.email) {
+    if (req.user?.email !== user.email) {
       return next(createError("Unauthorized", 401));
     }
 
@@ -117,7 +123,7 @@ export const updateUser = async (
       { new: true }
     );
 
-    res.status(200).json('User updated successfully');
+    res.status(200).json("User updated successfully");
   } catch (error) {
     next(error);
   }
@@ -128,22 +134,26 @@ export const deleteUser = async (
   res: Response,
   next: NextFunction
 ) => {
-  
   const { id } = req.params;
   try {
-    const user = await User.findOneAndUpdate(
-      { _id: id, active: true },
-      { active: false }
-    );
+    const user = await User.findOne({ _id: id, active: true });
 
     if (!user) {
       return next(createError("User not found", 404));
     }
-    
-    if(req.user?.email !== user.email) {
+
+    if (req.user?.email !== user.email) {
       return next(createError("Unauthorized", 401));
     }
-    res.status(200).json('User deleted successfully');
+
+    await User.updateOne(
+      { _id: id, active: true },
+      {
+        active: false,
+      }
+    );
+
+    res.status(200).json("User deleted successfully");
   } catch (error) {
     next(error);
   }

@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import Product from "../models/Product";
 import mongoose from "mongoose";
-import User from "../models/user";
+import User from "../models/User";
 import { createError } from "../utils/errors";
 
 export const createProduct = async (
@@ -10,6 +10,16 @@ export const createProduct = async (
   next: NextFunction
 ) => {
   const { name, price, description, image, category } = req.body;
+
+  console.log(req.user);
+
+  const user = await User.findOne(
+    { email: req.user?.email, active: true },
+    { password: 0 }
+  );
+
+  if (!user) return next(createError("User not found", 404));
+
   try {
     const product = await Product.create({
       name,
@@ -17,7 +27,7 @@ export const createProduct = async (
       description,
       image,
       category,
-      user: req.user?._id,
+      user: new mongoose.Types.ObjectId(user._id),
     });
     res.status(201).json(product);
   } catch (error) {
@@ -58,12 +68,14 @@ export const getProducts = async (
     userId?: string;
   } = req.query;
 
-  const user = await User.findOne(
-    { _id: userId, active: true },
-    { password: 0 }
-  );
+  if (userId) {
+    const user = await User.findOne(
+      { _id: userId, active: true },
+      { password: 0 }
+    );
 
-  if (!user) return next(createError("User not found", 404));
+    if (!user) return next(createError("User not found", 404));
+  }
 
   try {
     const products = await Product.aggregate([
@@ -87,8 +99,11 @@ export const userCategories = async (
   res: Response,
   next: NextFunction
 ) => {
+
+  const { id } = req.params;
+
   const user = await User.findOne(
-    { email: req.user.email, active: true },
+    { _id: new mongoose.Types.ObjectId(id), active: true },
     { password: 0 }
   );
 
@@ -113,7 +128,24 @@ export const updateProduct = async (
   const { id } = req.params;
   const { name, price, description, image, category } = req.body;
   try {
-    const updateProduct = await Product.findOneAndUpdate(
+    const product = await Product.findOne({
+      _id: new mongoose.Types.ObjectId(id),
+      active: true,
+    });
+
+    if (!product) return next(createError("Product not found", 404));
+
+    const user = await User.findOne(
+      { email: req.user?.email, active: true },
+      { password: 0 }
+    );
+
+    if (!user) return next(createError("User not found", 404));
+
+    if (product.user.toString() !== user._id.toString())
+      return next(createError("Unauthorized", 401));
+
+    const updateProduct = await Product.updateOne(
       {
         _id: new mongoose.Types.ObjectId(id),
         active: true,
@@ -128,7 +160,7 @@ export const updateProduct = async (
       { new: true }
     );
     if (!updateProduct) return next(createError("Product not found", 404));
-    res.status(200).json(updateProduct);
+    res.status(200).json('Updated succesfully');
   } catch (error) {
     next(error);
   }
@@ -141,6 +173,23 @@ export const deleteProduct = async (
 ) => {
   const { id } = req.params;
   try {
+    const product = await Product.findOne({
+      _id: new mongoose.Types.ObjectId(id),
+      active: true,
+    });
+
+    if (!product) return next(createError("Product not found", 404));
+
+    const user = await User.findOne(
+      { email: req.user?.email, active: true },
+      { password: 0 }
+    );
+
+    if (!user) return next(createError("User not found", 404));
+    
+    if (product.user.toString() !== user._id.toString())
+      return next(createError("Unauthorized", 401));
+
     const deleteProduct = await Product.findOneAndUpdate(
       {
         _id: new mongoose.Types.ObjectId(id),
@@ -152,7 +201,7 @@ export const deleteProduct = async (
       { new: true }
     );
     if (!deleteProduct) return next(createError("Product not found", 404));
-    res.status(200).json(deleteProduct);
+    res.status(200).json('Deleted succesfully');
   } catch (error) {
     next(error);
   }
