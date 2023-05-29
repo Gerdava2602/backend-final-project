@@ -12,7 +12,6 @@ export const handleError = (err: any, req: Request, res: Response, next: NextFun
         status: status,
         message: message
     }
-    console.log(handled_error);
     res.status(status).json(handled_error);
 }
 
