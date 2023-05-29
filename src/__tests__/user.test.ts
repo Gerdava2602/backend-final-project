@@ -352,11 +352,19 @@ describe('User', () => {
     describe('DELETE /id', () => {
         describe('Endpoint tests', () => {
             it('Endpoint should delete a user', async () => {
-                const token = jwt.generateToken({ email: 'test@email.com', password: 'test'});
+                const token = jwt.generateToken({ email: 'no2@mail.com', password: 'test'});
 
-                const user = await User.findOne({ username: 'test' });
+                const user = await User.create({
+                    username: 'test2',
+                    email: 'no2@mail.com',
+                    password: 'test',
+                    name: 'test',
+                    lastname: 'test',
+                    phone: 'test',
+                    address: 'test'
+                });
+
                 const response = await request(app).delete(`/user/${user?._id}`).set('Cookie', `token=${token}`);
-
                 expect(response.status).toBe(200);
             });
 
@@ -423,9 +431,6 @@ describe('User', () => {
             });
         });
     });
-
-
-
 });
 
 afterAll(async () => {

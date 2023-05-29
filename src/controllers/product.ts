@@ -11,8 +11,6 @@ export const createProduct = async (
 ) => {
   const { name, price, description, image, category } = req.body;
 
-  console.log(req.user);
-
   const user = await User.findOne(
     { email: req.user?.email, active: true },
     { password: 0 }
@@ -94,12 +92,7 @@ export const getProducts = async (
   }
 };
 
-export const userCategories = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-
+export const userCategories = async (req: Request, res: Response, next: NextFunction) => {
   const { id } = req.params;
 
   const user = await User.findOne(
@@ -107,7 +100,9 @@ export const userCategories = async (
     { password: 0 }
   );
 
-  if (!user) return next(createError("User not found", 404));
+  if (!user) {
+    return next(createError("User not found", 404));
+  }
 
   try {
     const categories = await Product.distinct("category", {
@@ -186,7 +181,7 @@ export const deleteProduct = async (
     );
 
     if (!user) return next(createError("User not found", 404));
-    
+
     if (product.user.toString() !== user._id.toString())
       return next(createError("Unauthorized", 401));
 
