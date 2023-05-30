@@ -5,9 +5,6 @@ import User from "./models/User";
 export default async () => {
     await mongoose.connect('mongodb://root:example@localhost:27017/test_db?authSource=admin');
 
-    await User.deleteMany({});
-    await Product.deleteMany({});
-
     let user = await User.findOne({ username: 'test' });
 
     if (!user) {
