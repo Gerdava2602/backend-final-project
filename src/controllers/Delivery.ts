@@ -64,8 +64,8 @@ export const getDeliveries = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { start, end } = req.query;
-  console.log(start || end);
+  const start = req.query?.start;
+  const end = req.query?.end;
 
   try {
     const user = await User.findOne(

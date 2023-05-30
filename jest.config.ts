@@ -6,5 +6,6 @@ module.exports = {
     transform: {
       '^.+\\.(ts|tsx)$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.json' }],
     },
+    globalSetup: './src/test.setup.ts',
   };
   
